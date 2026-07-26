@@ -74,6 +74,18 @@
   </section>
 
   <section>
+    <h2>Fluxo</h2>
+    <div class="card" style="overflow-x:auto">
+      <pre class="mermaid">
+flowchart LR
+  A["Lead chega<br/>pelo formulário"] --> B["Grava a origem"]
+  B --> C[("Banco: coluna origem<br/>na tabela leads")]
+  C --> D["Painel mostra<br/>a origem no card"]
+      </pre>
+    </div>
+  </section>
+
+  <section>
     <h2>Passo a passo</h2>
     <ol class="steps">
       <li><div><b>Migração no banco</b> — adicionar a coluna <code>origem</code> na tabela <code>leads</code>.</div></li>
@@ -111,5 +123,21 @@
 
   <footer>OLIMPO · HERMES · PLANO DE EXECUÇÃO · EXEMPLO DO PADRÃO</footer>
 </div>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+      primaryColor: dark ? '#22262d' : '#F0EDE4',
+      primaryTextColor: dark ? '#EDEBE4' : '#191712',
+      primaryBorderColor: dark ? '#C88F32' : '#A16207',
+      lineColor: dark ? '#847E73' : '#8f8877',
+      fontSize: '15px'
+    }
+  });
+</script>
 </body>
 </html>
