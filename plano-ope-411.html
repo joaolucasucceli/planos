@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Plano · Grupo JB — Banco de dados + Backend da central</title><style>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Plano · Finalizar o sistema Grupo JB — 9 telas + RLS + banco</title><style>
   :root{--bg:#F5F3ED;--surface:#FFFFFF;--surface-2:#F0EDE4;--line:#E4E0D5;--line-strong:#CFC8B7;--ink:#191712;--ink-soft:#5b5548;--muted:#8f8877;--accent:#8a5d11;--accent-fill:#A16207;--ok:#45704f;--no:#a83526;--sev2:#96650d;--slate:#3a5769;--shadow:0 1px 2px rgba(25,23,18,.04),0 10px 30px rgba(25,23,18,.06);--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono","Cascadia Code","Segoe UI Mono",Menlo,Consolas,monospace;}
   @media (prefers-color-scheme:dark){:root{--bg:#121417;--surface:#191C21;--surface-2:#22262d;--line:#2A2F37;--line-strong:#3d434d;--ink:#EDEBE4;--ink-soft:#B4AFA4;--muted:#847E73;--accent:#E0AC56;--accent-fill:#C88F32;--ok:#78b088;--no:#dd7565;--sev2:#d9a544;--slate:#7aa6bd;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.36);}}
   *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
@@ -21,14 +21,104 @@
   .approve{background:color-mix(in srgb,var(--accent) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line));border-radius:16px;padding:22px 24px;display:flex;gap:16px;align-items:flex-start;margin-top:8px;} .approve .ic{width:40px;height:40px;border-radius:11px;background:var(--accent-fill);color:#fff;display:grid;place-items:center;flex:none;font-size:20px;} .approve b{color:var(--accent);}
   footer{border-top:1px solid var(--line);padding:26px 0 60px;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.08em;}
   .mermaid{display:flex;justify-content:center;} @media (max-width:620px){.ba{grid-template-columns:1fr;}}
-</style></head><body><div class="wrap"><header class="hero"><div class="eyebrow">Plano de execução</div><h1>Grupo JB — Banco de dados + Backend da central</h1><p class="lead" style="margin-top:18px">Construir o banco (6 tabelas + RLS + índices) e o backend (webhook, envio e rotas) que fazem a central atender WhatsApp de verdade. Sem IA e sem cobrança.</p><div class="meta"><span class="chip">📋 OPE-411</span><span class="chip">🗂️ Grupo JB — Central de atendimento (Bloco 1)</span><span class="chip">✍️ Hermes</span></div><div class="signals"><span class="sig med">🚦 Risco <b>médio</b></span><span class="sig">📏 Tamanho <b>médio · ~2-3 dias</b></span><span class="sig">💸 Custo <b>nenhum novo (Supabase + Vercel já provisionados)</b></span></div></header><section><h2><span>🔄 Antes → Depois</span></h2><div class="ba"><div class="col hoje"><div class="k">Hoje</div><p>Banco só tem 'usuarios' e 'canais'. Backend só tem a rota de saúde (/api/saude). As telas do painel existem como casca, sem dados reais por trás.</p></div><div class="col depois"><div class="k">Depois</div><p>Banco completo com RLS ligada e testada nos 3 perfis. Backend recebendo e enviando mensagem de WhatsApp, com fila, assumir, transferir e resolver funcionando.</p></div></div></section><section><h2><span>🧩 O que muda</span></h2><div class="card"><ul class="clean"><li>BANCO: criar contatos, conversas, mensagens, tickets, transferencias e eventos</li><li>BANCO: ligar RLS em todas as tabelas + políticas por perfil (atendente / cobranca / supervisor + pode_cobranca)</li><li>BANCO: índices da operação (lista de conversas, minhas conversas, dedupe de mensagem)</li><li>BACKEND: webhook da Uazapi (entrada) com trava anti-duplicidade por id_externo</li><li>BACKEND: envio de mensagem (grava pendente -> envia -> confirma, nunca some)</li><li>BACKEND: rotas de assumir / transferir / resolver / listar conversas + criar usuário</li><li>BACKEND: 2 tarefas agendadas (checar conexão da Uazapi; reprocessar falhas)</li></ul></div></section><section><h2><span>🔀 Fluxo</span></h2><div class="card" style="overflow-x:auto"><pre class="mermaid">
-flowchart LR
-  WA["WhatsApp do cliente"] --> WH["Webhook /api/webhooks/uazapi"]
-  WH -->|checa id_externo| DEDUP{"ja existe?"}
-  DEDUP -->|sim| STOP["responde 200 e para"]
-  DEDUP -->|nao| GRAVA["acha/cria contato e conversa, grava mensagem"]
-  GRAVA --> RT["notifica painel em tempo real"]
-  AT["Atendente responde"] --> ENV["/api/mensagens grava pendente"]
-  ENV --> UAZ["envia a Uazapi"]
-  UAZ --> CONF["atualiza para enviada"]
-</pre></div></section><section><h2><span>🪜 Passo a passo</span></h2><ol class="steps"><li><div>1. Migrations do banco, na ordem de dependência: contatos -> conversas/mensagens -> tickets/transferencias -> eventos</div></li><li><div>2. Ligar RLS + políticas por perfil em todas as tabelas</div></li><li><div>3. Criar os índices da operação</div></li><li><div>4. Helpers de auth/perfil no backend (em cima dos clientes Supabase que já existem)</div></li><li><div>5. Webhook de entrada da Uazapi (com dedupe)</div></li><li><div>6. Rota de envio de mensagem</div></li><li><div>7. Rotas de conversa: assumir, transferir, resolver, listar</div></li><li><div>8. Rota de criar usuário (só supervisor)</div></li><li><div>9. Tarefas agendadas (conexão + reprocesso de falhas)</div></li></ol></section><section><h2><span>⚠️ Riscos & premortem</span></h2><div class="risk"><div class="t">Uazapi reenvia o mesmo webhook e a mensagem entra duas vezes</div><div class="m">índice único em id_externo + checagem logo na entrada do webhook</div></div><div class="risk"><div class="t">Dois atendentes assumem a mesma conversa</div><div class="m">assumir é update condicional; o segundo recebe 409 'já assumida'</div></div><div class="risk"><div class="t">RLS travar demais ou liberar demais</div><div class="m">testar nos 3 perfis antes de subir (já é critério da OPE-411)</div></div></section><section><h2><span>🔗 Dependências / bloqueios</span></h2><div class="dep"><div class="m">Precisa de um número de WhatsApp funcionando — uso um chip de teste no desenvolvimento e troco pelo do cliente na entrega (a Uazapi reconecta por QR).</div></div></section><section><h2><span>❓ Perguntas em aberto</span></h2><ul class="qa"><li>Contatos: minha memória diz que 'contatos' tem um campo 'tipo' separando lead x cliente. O plano do Bloco 1 trata contato só como o cliente final do WhatsApp de pós-venda, sem esse campo. Mantenho simples ou já deixo o campo 'tipo'?</li><li>Confirma que os commits saem no seu nome (João solo, sem co-autor)?</li><li>A chave service_role da Uazapi/Supabase já está nas variáveis da Vercel, ou preciso te pedir pra configurar?</li></ul></section><section><h2><span>🚫 Fora do escopo</span></h2><p class="out">Telas / frontend (o painel), a Julia (IA, bloco 2), o módulo de cobrança (bloco 3) e os templates da Meta.</p></section><section><h2><span>✅ Como validar</span></h2><p class="out">RLS testada nos 3 perfis (atendente não vê conversa de outro atendente), mensagem entra e sai de verdade num chip de teste, e mensagem repetida não duplica.</p></section><section><h2><span>↩️ Rollback</span></h2><p class="out">Cada bloco vai num PR separado; migrations são reversíveis. Desfazer é reverter o PR / rodar a migration de baixo.</p></section><div class="approve"><span class="ic">✋</span><div><b>Sua vez.</b> Se aprovar, responde <b>"aprovo"</b> no Telegram que eu executo pelo fluxo (branch → PR → seu OK). Se não, me diz o que ajustar que eu refaço o plano.</div></div><footer>OLIMPO · HERMES · PLANO DE EXECUÇÃO</footer></div><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';const dark=matchMedia('(prefers-color-scheme: dark)').matches;mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{fontFamily:'ui-monospace, Menlo, Consolas, monospace',primaryColor:dark?'#22262d':'#F0EDE4',primaryTextColor:dark?'#EDEBE4':'#191712',primaryBorderColor:dark?'#C88F32':'#A16207',lineColor:dark?'#847E73':'#8f8877',fontSize:'15px'}});</script></body></html>
+</style></head><body><div class="wrap"><header class="hero"><div class="eyebrow">Plano de execução</div><h1>Finalizar o sistema Grupo JB — 9 telas + RLS + banco</h1><p class="lead" style="margin-top:18px">Fechar a central de atendimento do Grupo JB pra ir a produção: as 9 telas no ar, RLS validada nos 3 perfis e o esquema de banco completo criado.</p><div class="meta"><span class="chip">📋 OPE-411</span><span class="chip">🗂️ Grupo JB</span><span class="chip">🗓️ 26 jul 2026</span><span class="chip">✍️ Hermes</span></div><div class="signals"><span class="sig high">🚦 Risco <b>alto</b></span><span class="sig">📏 Tamanho <b>grande · fechamento de bloco</b></span><span class="sig">💸 Custo <b>nenhum novo (Supabase + Vercel já em uso)</b></span></div></header><section><h2><span>🔄 Antes → Depois</span></h2><div class="ba"><div class="col hoje"><div class="k">Hoje</div><p>Banco tem só 2 das 8 tabelas (usuarios e canais). Telas em construção. RLS não validada nos 3 perfis. Cadastro aberto ainda ligado no Supabase.</p></div><div class="col depois"><div class="k">Depois</div><p>9 telas no ar em grupo-jb.vercel.app, esquema de banco completo com RLS ligada em todas as tabelas, 3 perfis testados e caminho negativo passando.</p></div></div></section><section><h2><span>🧩 O que muda</span></h2><div class="card"><ul class="clean"><li>Criar as 6 tabelas que faltam: contatos, conversas, mensagens, tickets, transferencias, eventos</li><li>Ligar RLS em todas as tabelas e escrever as políticas por perfil</li><li>Definir Lacuna 7: 2ª via de boleto via coluna pode_cobranca no atendente</li><li>Telas do escopo (login, atendimento, contatos, cobranca, relatorios, meu-desempenho, usuarios, integracoes)</li><li>Desligar cadastro aberto + ligar proteção de senha vazada no Supabase</li><li>Trocar usuários de teste pelos reais no dia da entrega</li></ul></div></section><section><h2><span>🗄️ Banco de dados</span></h2><div class="card" style="overflow-x:auto"><pre class="mermaid">
+erDiagram
+    USUARIOS ||--o{ CONVERSAS : atende
+    USUARIOS ||--o{ MENSAGENS : escreve
+    USUARIOS ||--o{ TICKETS : responsavel
+    USUARIOS ||--o{ TRANSFERENCIAS : origem_destino
+    USUARIOS ||--o{ EVENTOS : gera
+    CANAIS ||--o{ CONTATOS : recebe
+    CANAIS ||--o{ CONVERSAS : hospeda
+    CONTATOS ||--o{ CONVERSAS : tem
+    CONVERSAS ||--o{ MENSAGENS : contem
+    CONVERSAS ||--o{ TICKETS : abre
+    CONVERSAS ||--o{ TRANSFERENCIAS : registra
+    USUARIOS {
+        uuid id PK
+        text nome
+        text email UK
+        enum perfil "atendente/cobranca/supervisor"
+        bool pode_cobranca
+        bool ativo
+        timestamptz criado_em
+    }
+    CANAIS {
+        uuid id PK
+        text nome
+        enum tipo "pos_venda/cobranca"
+        enum provedor "uazapi/meta"
+        text identificador_externo
+        bool conectado
+        timestamptz ultima_conexao
+    }
+    CONTATOS {
+        uuid id PK
+        uuid canal_id FK
+        text telefone
+        text nome
+        timestamptz criado_em
+    }
+    CONVERSAS {
+        uuid id PK
+        uuid contato_id FK
+        uuid canal_id FK
+        uuid atendente_id FK "nulo = na fila"
+        enum status "fila/em_atendimento/resolvida"
+        timestamptz ultima_mensagem_em
+        int nao_lidas
+    }
+    MENSAGENS {
+        uuid id PK
+        uuid conversa_id FK
+        uuid autor_id FK "nulo = cliente ou IA"
+        enum direcao "recebida/enviada"
+        enum origem "cliente/humano/ia"
+        text conteudo
+        enum tipo "texto/imagem/documento/audio"
+        text url_midia
+        text id_externo UK "trava anti-duplicidade"
+        enum status_envio "pendente/enviada/entregue/lida/falhou"
+        text erro
+        timestamptz criada_em
+    }
+    TICKETS {
+        uuid id PK
+        serial numero
+        uuid conversa_id FK
+        uuid atendente_id FK
+        text assunto
+        enum status "aberto/pendente/resolvido/fechado"
+        timestamptz aberto_em
+        timestamptz resolvido_em
+    }
+    TRANSFERENCIAS {
+        uuid id PK
+        uuid conversa_id FK
+        uuid de_usuario_id FK
+        uuid para_usuario_id FK
+        text motivo
+        timestamptz criada_em
+    }
+    EVENTOS {
+        uuid id PK
+        uuid usuario_id FK
+        text acao
+        text entidade
+        uuid entidade_id
+        jsonb dados
+        timestamptz criado_em
+    }
+</pre></div></section><section><h2><span>🔀 Fluxo</span></h2><div class="card" style="overflow-x:auto"><pre class="mermaid">
+flowchart TD
+    A["Cliente manda WhatsApp"] --> B["Webhook Uazapi"]
+    B --> C{"id_externo ja existe?"}
+    C -->|sim| D["Responde 200 e para"]
+    C -->|nao| E["Acha ou cria contato"]
+    E --> F["Acha ou cria conversa (entra na fila)"]
+    F --> G["Grava mensagem"]
+    G --> H["Aparece no painel em tempo real"]
+    H --> I["Atendente assume da fila"]
+    I --> J["Responde / transfere / resolve"]
+    J --> K["RLS garante: cada um so ve o que e dele"]
+</pre></div></section><section><h2><span>🪜 Passo a passo</span></h2><ol class="steps"><li><div>Criar as 6 tabelas que faltam, na ordem das migrations (contatos e conversas → mensagens → tickets e transferencias → eventos)</div></li><li><div>Adicionar os índices que a operação exige (lista de conversas, minhas conversas, trava anti-duplicidade)</div></li><li><div>Ligar RLS em todas as tabelas e escrever as políticas por perfil</div></li><li><div>Finalizar as telas do escopo ligadas ao banco</div></li><li><div>Desligar cadastro aberto + ligar proteção de senha vazada no painel do Supabase</div></li><li><div>Testar os 3 perfis: atendente nunca vê desempenho/conversa de outro</div></li><li><div>Rodar o caminho negativo (mensagem falha, conexão cai, dois assumem a mesma)</div></li><li><div>No dia da entrega: trocar usuários de teste pelos reais</div></li></ol></section><section><h2><span>👥 Impacto pro cliente</span></h2><p class="out">A equipe do Grupo JB passa a atender o WhatsApp por um painel, com fila, ticket, transferência com histórico e cada atendente vendo só o que é dele.</p></section><section><h2><span>⚠️ Riscos & premortem</span></h2><div class="risk"><div class="t">Banco quase vazio: faltam 6 das 8 tabelas</div><div class="m">Criar tudo por migrations versionadas antes de fechar as telas — sem isso as telas não têm o que mostrar</div></div><div class="risk"><div class="t">RLS mal escrita expõe dado de cliente entre atendentes</div><div class="m">Testar os 3 perfis com login real e checar caso a caso na tabela do plano</div></div><div class="risk"><div class="t">Webhook duplica mensagem (Uazapi reenvia)</div><div class="m">Índice único em id_externo — a trava anti-duplicidade</div></div><div class="risk"><div class="t">Cadastro aberto ligado no Supabase (qualquer um cria conta)</div><div class="m">Task 0.2c: desligar cadastro aberto + ligar proteção de senha vazada</div></div></section><section><h2><span>🔗 Dependências / bloqueios</span></h2><div class="dep"><div class="m">Precisa de um número de WhatsApp funcionando (chip de teste durante o dev, trocado pelo número do cliente na entrega). A definição da Lacuna 7 (2ª via de boleto) trava a escrita da RLS.</div></div></section><section><h2><span>❓ Perguntas em aberto</span></h2><ul class="qa"><li>Lacuna 7: 2ª via de boleto é permissão do atendente (via pode_cobranca) ou só da cobrança? Preciso disso pra escrever a RLS.</li><li>Confirma que posso criar as 6 tabelas que faltam por migration? (o banco hoje só tem usuarios e canais)</li></ul></section><section><h2><span>🚫 Fora do escopo</span></h2><p class="out">IA (Julia) e módulo de cobrança completo — são os blocos 2 e 3. Aqui só a base da cobrança (tela + permissão).</p></section><section><h2><span>✅ Como validar</span></h2><p class="out">As 9 telas funcionam, os 3 perfis passam (atendente não vê o da equipe), o caminho negativo passa e o deploy em grupo-jb.vercel.app está estável.</p></section><section><h2><span>↩️ Rollback</span></h2><p class="out">Cada tabela nasce numa migration própria — dá pra reverter uma a uma. As telas vão por PR separado; merge só com seu OK. Nada sobe a produção sem aprovação.</p></section><div class="approve"><span class="ic">✋</span><div><b>Sua vez.</b> Se aprovar, responde <b>"aprovo"</b> no Telegram que eu executo pelo fluxo (branch → PR → seu OK). Se não, me diz o que ajustar que eu refaço o plano.</div></div><footer>OLIMPO · HERMES · PLANO DE EXECUÇÃO</footer></div><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';const dark=matchMedia('(prefers-color-scheme: dark)').matches;mermaid.initialize({startOnLoad:false,theme:'base',themeVariables:{fontFamily:'ui-monospace, Menlo, Consolas, monospace',primaryColor:dark?'#22262d':'#F0EDE4',primaryTextColor:dark?'#EDEBE4':'#191712',primaryBorderColor:dark?'#C88F32':'#A16207',lineColor:dark?'#847E73':'#8f8877',fontSize:'15px'}});await mermaid.run();function zoom(svg){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px;cursor:zoom-out';const c=svg.cloneNode(true);const w=svg.getBoundingClientRect().width;c.style.maxWidth='none';c.style.width=(w*1.8)+'px';c.style.height='auto';o.appendChild(c);o.addEventListener('click',()=>o.remove());document.body.appendChild(o);}document.querySelectorAll('.mermaid svg').forEach(function(svg){svg.style.maxWidth='none';svg.style.cursor='zoom-in';svg.addEventListener('click',function(){zoom(svg);});const h=document.createElement('div');h.textContent='clique pra ampliar';h.style.cssText='text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px';svg.parentElement.appendChild(h);});</script></body></html>
