@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Plano · Grupo JB — Banco + Backend (MVP, sem telas)</title><style>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Plano · Grupo JB — Banco + Backend do atendimento WhatsApp (MVP)</title><style>
   :root{--bg:#F5F3ED;--surface:#FFFFFF;--surface-2:#F0EDE4;--line:#E4E0D5;--line-strong:#CFC8B7;--ink:#191712;--ink-soft:#5b5548;--muted:#8f8877;--accent:#8a5d11;--accent-fill:#A16207;--ok:#45704f;--no:#a83526;--sev2:#96650d;--slate:#3a5769;--shadow:0 1px 2px rgba(25,23,18,.04),0 10px 30px rgba(25,23,18,.06);--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono","Cascadia Code","Segoe UI Mono",Menlo,Consolas,monospace;}
   @media (prefers-color-scheme:dark){:root{--bg:#121417;--surface:#191C21;--surface-2:#22262d;--line:#2A2F37;--line-strong:#3d434d;--ink:#EDEBE4;--ink-soft:#B4AFA4;--muted:#847E73;--accent:#E0AC56;--accent-fill:#C88F32;--ok:#78b088;--no:#dd7565;--sev2:#d9a544;--slate:#7aa6bd;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.36);}}
   *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
@@ -21,29 +21,13 @@
   .approve{background:color-mix(in srgb,var(--accent) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line));border-radius:16px;padding:22px 24px;display:flex;gap:16px;align-items:flex-start;margin-top:8px;} .approve .ic{width:40px;height:40px;border-radius:11px;background:var(--accent-fill);color:#fff;display:grid;place-items:center;flex:none;font-size:20px;} .approve b{color:var(--accent);}
   footer{border-top:1px solid var(--line);padding:26px 0 60px;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.08em;}
   .mermaid{display:flex;justify-content:center;} @media (max-width:620px){.ba{grid-template-columns:1fr;}}
-</style></head><body><div class="wrap"><header class="hero"><div class="eyebrow">Plano de execução</div><h1>Grupo JB — Banco + Backend (MVP, sem telas)</h1><p class="lead" style="margin-top:18px">Montar a base de dados e o backend da central de atendimento — sem interface. Modelo enxuto: contato, atendimento (com conversas e mensagens dentro), permissões e log de transferências.</p><div class="meta"><span class="chip">📋 OPE-411</span><span class="chip">🗂️ Grupo JB</span><span class="chip">🗓️ 26 jul 2026</span><span class="chip">✍️ Hermes</span></div><div class="signals"><span class="sig med">🚦 Risco <b>médio</b></span><span class="sig">📏 Tamanho <b>médio · ~1 dia</b></span><span class="sig">💸 Custo <b>nenhum</b></span></div></header><section><h2><span>🔄 Antes → Depois</span></h2><div class="ba"><div class="col hoje"><div class="k">Hoje</div><p>Banco só tem 2 tabelas: usuarios e canais. Nenhuma tabela de contato, atendimento, conversa ou mensagem. Sem backend recebendo mensagem.</p></div><div class="col depois"><div class="k">Depois</div><p>Banco com o núcleo do atendimento criado e o webhook recebendo mensagem do cliente, sem duplicar. Pronto pra ligar telas depois.</p></div></div></section><section><h2><span>🧩 O que muda</span></h2><div class="card"><ul class="clean"><li>Escopo cortado: só banco de dados + backend, ZERO telas</li><li>Remove a tabela canais (não precisa)</li><li>Cria contato (lead/cliente) — por ora só criar e atualizar</li><li>Cria atendimento como peça central, com conversas e mensagens dentro</li><li>permissao_de_usuarios pra controlar o que cada um pode</li><li>transferencias vira log de observabilidade (quem passou pra quem), não peça central</li><li>Webhook: mensagem chega → checa id_externo → não duplica</li></ul></div></section><section><h2><span>🗄️ Banco de dados</span></h2><div class="card" style="overflow-x:auto"><pre class="mermaid">
+</style></head><body><div class="wrap"><header class="hero"><div class="eyebrow">Plano de execução</div><h1>Grupo JB — Banco + Backend do atendimento WhatsApp (MVP)</h1><p class="lead" style="margin-top:18px">Modelar o banco e o backend do atendimento via WhatsApp (Uazapi): receber mensagem, não duplicar, casar contato e atendimento. Sem telas.</p><div class="meta"><span class="chip">📋 OPE-411</span><span class="chip">🗂️ Grupo JB</span><span class="chip">✍️ Hermes</span></div><div class="signals"><span class="sig med">🚦 Risco <b>médio</b></span><span class="sig">📏 Tamanho <b>médio · ~1 dia</b></span><span class="sig">💸 Custo <b>nenhum</b></span></div></header><section><h2><span>🔄 Antes → Depois</span></h2><div class="ba"><div class="col hoje"><div class="k">Hoje</div><p>Banco quase vazio: só existem usuarios e canais. Nada de atendimento, conversa, mensagem ou controle de duplicidade.</p></div><div class="col depois"><div class="k">Depois</div><p>6 tabelas do MVP criadas com RLS, e um webhook que recebe a mensagem do WhatsApp, evita duplicar e organiza contato → atendimento → conversa → mensagem.</p></div></div></section><section><h2><span>🧩 O que muda</span></h2><div class="card"><ul class="clean"><li>Tabela usuario com papel (admin ou atendente) — sem tabela separada de permissao</li><li>Tabela contato: lead que fecha vira cliente no mesmo registro (muda so o status)</li><li>Tabela atendimento (nao 'ticket'), ligada ao contato, com status e responsavel</li><li>conversa dentro do atendimento; mensagem dentro da conversa</li><li>mensagem.id_externo UNICO — a trava contra duplicidade</li><li>transferencia so como log (observabilidade)</li><li>Removida qualquer tabela/campo de 'canal' — e sempre WhatsApp (Uazapi)</li><li>RLS: admin ve tudo; atendente ve so os atendimentos dele</li><li>Disparo de cobranca (Meta oficial) fica FORA deste MVP</li></ul></div></section><section><h2><span>🗄️ Banco de dados</span></h2><div class="card" style="overflow-x:auto"><pre class="mermaid">
 erDiagram
-    usuarios ||--o{ permissao_de_usuarios : tem
-    usuarios ||--o{ atendimento : atende
-    contato ||--o{ atendimento : gera
-    atendimento ||--o{ conversas : contem
-    conversas ||--o{ mensagens : contem
-    atendimento ||--o{ transferencias : registra
-    usuarios ||--o{ transferencias : de_para
-
-    usuarios {
+    usuario {
         uuid id PK
         text nome
         text email
-        enum perfil
-        bool pode_cobranca
-        bool ativo
-    }
-    permissao_de_usuarios {
-        uuid id PK
-        uuid id_usuario FK
-        text chave
-        bool valor
+        text papel "admin ou atendente"
     }
     contato {
         uuid id PK
@@ -52,43 +36,50 @@ erDiagram
         text email
         text cpf
         text endereco
-        enum status "lead ou cliente"
-        timestamptz criado_em
-        timestamptz atualizado_em
+        text status "lead ou cliente"
     }
     atendimento {
         uuid id PK
-        uuid id_contato FK
-        uuid id_usuario FK
-        enum status
+        uuid contato_id FK
+        uuid usuario_id FK "responsavel"
+        text status "aberto ou fechado"
         timestamptz criado_em
     }
-    conversas {
+    conversa {
         uuid id PK
-        uuid id_atendimento FK
+        uuid atendimento_id FK
         timestamptz criado_em
     }
-    mensagens {
+    mensagem {
         uuid id PK
-        uuid id_conversa FK
-        text id_externo "dedup do webhook"
-        enum direcao
+        uuid conversa_id FK
         text conteudo
+        text id_externo "UNICO"
+        text direcao "recebida ou enviada"
+        text status "pendente enviada ou lida"
         timestamptz criado_em
     }
-    transferencias {
+    transferencia {
         uuid id PK
-        uuid id_atendimento FK
-        uuid de_usuario FK
-        uuid para_usuario FK
+        uuid atendimento_id FK
+        uuid de_usuario_id FK
+        uuid para_usuario_id FK
         timestamptz criado_em
     }
+    contato ||--o{ atendimento : "tem"
+    usuario ||--o{ atendimento : "responsavel por"
+    atendimento ||--o{ conversa : "contem"
+    conversa ||--o{ mensagem : "contem"
+    atendimento ||--o{ transferencia : "registra"
+    usuario ||--o{ transferencia : "de"
+    usuario ||--o{ transferencia : "para"
 </pre></div></section><section><h2><span>🔀 Fluxo</span></h2><div class="card" style="overflow-x:auto"><pre class="mermaid">
 flowchart TD
-    A["Cliente manda mensagem"] --> B["Webhook recebe"]
+    A["Cliente manda mensagem no WhatsApp"] --> B["Webhook Uazapi recebe"]
     B --> C{"id_externo ja existe?"}
-    C -->|sim| D["Ignora (nao duplica)"]
-    C -->|nao| E["Acha/cria contato"]
-    E --> F["Abre ou usa atendimento"]
-    F --> G["Grava conversa + mensagem"]
-</pre></div></section><section><h2><span>🪜 Passo a passo</span></h2><ol class="steps"><li><div>Escrever as migrations das tabelas do MVP (contato, permissao_de_usuarios, atendimento, conversas, mensagens, transferencias)</div></li><li><div>Remover a tabela canais</div></li><li><div>Criar o endpoint de webhook que recebe a mensagem</div></li><li><div>Implementar a dedup por id_externo</div></li><li><div>Implementar acha/cria contato e abre/usa atendimento</div></li><li><div>Gravar conversa + mensagem</div></li></ol></section><section><h2><span>⚠️ Riscos & premortem</span></h2><div class="risk"><div class="t">id_externo sem índice único deixa duplicar em corrida</div><div class="m">Índice único em mensagens.id_externo — o banco barra a duplicata</div></div><div class="risk"><div class="t">Tirar canais pode quebrar algo que referencie ela</div><div class="m">Conferir que nada aponta pra canais antes do drop</div></div></section><section><h2><span>🔗 Dependências / bloqueios</span></h2><div class="dep"><div class="m">Nada trava — mas as 3 perguntas acima afinam o modelo antes de eu escrever as migrations.</div></div></section><section><h2><span>❓ Perguntas em aberto</span></h2><ul class="qa"><li>De qual canal a mensagem chega no MVP (Uazapi, Cloud API, os dois)? Isso define de onde vem o id_externo.</li><li>permissao_de_usuarios: quais permissões existem no MVP além de pode_cobranca?</li><li>Confirma que posso REMOVER a tabela canais de vez?</li></ul></section><section><h2><span>🚫 Fora do escopo</span></h2><p class="out">Nenhuma tela / interface. Sem RLS refinada nesta etapa (foco em estrutura + ingestão). Sem disparo de cobrança.</p></section><section><h2><span>✅ Como validar</span></h2><p class="out">Mandar uma mensagem de teste e ver o contato, o atendimento, a conversa e a mensagem aparecerem no banco. Mandar a MESMA mensagem de novo e confirmar que não duplica.</p></section><section><h2><span>↩️ Rollback</span></h2><p class="out">Cada tabela numa migration reversível; dá pra derrubar as novas tabelas e voltar ao estado atual (usuarios + canais).</p></section><div class="approve"><span class="ic">✋</span><div><b>Sua vez.</b> Se aprovar, responde <b>"aprovo"</b> no Telegram que eu executo pelo fluxo (branch → PR → seu OK). Se não, me diz o que ajustar que eu refaço o plano.</div></div><footer>OLIMPO · HERMES · PLANO DE EXECUÇÃO</footer></div><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';const dark=matchMedia('(prefers-color-scheme: dark)').matches;mermaid.initialize({startOnLoad:false,theme:'base',themeVariables:{fontFamily:'ui-monospace, Menlo, Consolas, monospace',primaryColor:dark?'#22262d':'#F0EDE4',primaryTextColor:dark?'#EDEBE4':'#191712',primaryBorderColor:dark?'#C88F32':'#A16207',lineColor:dark?'#847E73':'#8f8877',fontSize:'15px'}});await mermaid.run();function zoom(svg){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px;cursor:zoom-out';const c=svg.cloneNode(true);const w=svg.getBoundingClientRect().width;c.style.maxWidth='none';c.style.width=(w*1.8)+'px';c.style.height='auto';o.appendChild(c);o.addEventListener('click',()=>o.remove());document.body.appendChild(o);}document.querySelectorAll('.mermaid svg').forEach(function(svg){svg.style.maxWidth='none';svg.style.cursor='zoom-in';svg.addEventListener('click',function(){zoom(svg);});const h=document.createElement('div');h.textContent='clique pra ampliar';h.style.cssText='text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px';svg.parentElement.appendChild(h);});</script></body></html>
+    C -->|"sim"| D["Ignora (nao duplica)"]
+    C -->|"nao"| E["Acha ou cria o contato pelo telefone"]
+    E --> F["Acha ou abre um atendimento"]
+    F --> G["Grava a conversa e a mensagem"]
+    G --> H["Notifica o painel"]
+</pre></div></section><section><h2><span>🪜 Passo a passo</span></h2><ol class="steps"><li><div>Criar as 6 tabelas do MVP por migration (usuario, contato, atendimento, conversa, mensagem, transferencia)</div></li><li><div>Colocar restricao UNICA em mensagem.id_externo</div></li><li><div>Ativar RLS: admin ve tudo, atendente ve so os atendimentos dele</div></li><li><div>Escrever o webhook Uazapi com a logica de nao-duplicar e casar contato/atendimento</div></li><li><div>Abrir PR pro Joao aprovar</div></li></ol></section><section><h2><span>⚠️ Riscos & premortem</span></h2><div class="risk"><div class="t">Mensagens duplicadas se o webhook disparar duas vezes</div><div class="m">id_externo UNICO no banco: a segunda gravacao bate na trava e e ignorada</div></div><div class="risk"><div class="t">Atendente enxergar atendimento de outro</div><div class="m">RLS filtra por usuario_id responsavel — atendente so ve o dele</div></div></section><section><h2><span>🔗 Dependências / bloqueios</span></h2><div class="dep"><div class="m">Precisa da credencial/URL do webhook da Uazapi pra testar de ponta a ponta.</div></div></section><section><h2><span>❓ Perguntas em aberto</span></h2><ul class="qa"><li>Confirma que posso criar as 6 tabelas por migration e remover a tabela 'canais' que ja existe no banco?</li><li>A URL/credencial do webhook Uazapi ja existe ou preciso pedir ao cliente?</li></ul></section><section><h2><span>🚫 Fora do escopo</span></h2><p class="out">Telas / interface. Tabela ou campo de canal. Disparo de cobrança pela API oficial da Meta. Segunda via de boleto.</p></section><section><h2><span>✅ Como validar</span></h2><p class="out">Mandar a mesma mensagem duas vezes e ver que grava só uma. Logar como atendente e confirmar que só aparecem os atendimentos dele.</p></section><section><h2><span>↩️ Rollback</span></h2><p class="out">Cada tabela é uma migration separada — dá pra reverter uma a uma. Nada em produção antes do merge do PR.</p></section><div class="approve"><span class="ic">✋</span><div><b>Sua vez.</b> Se aprovar, responde <b>"aprovo"</b> no Telegram que eu executo pelo fluxo (branch → PR → seu OK). Se não, me diz o que ajustar que eu refaço o plano.</div></div><footer>OLIMPO · HERMES · PLANO DE EXECUÇÃO</footer></div><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';const dark=matchMedia('(prefers-color-scheme: dark)').matches;mermaid.initialize({startOnLoad:false,theme:'base',themeVariables:{fontFamily:'ui-monospace, Menlo, Consolas, monospace',primaryColor:dark?'#22262d':'#F0EDE4',primaryTextColor:dark?'#EDEBE4':'#191712',primaryBorderColor:dark?'#C88F32':'#A16207',lineColor:dark?'#847E73':'#8f8877',fontSize:'15px'}});await mermaid.run();function zoom(svg){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px;cursor:zoom-out';const c=svg.cloneNode(true);const w=svg.getBoundingClientRect().width;c.style.maxWidth='none';c.style.width=(w*1.8)+'px';c.style.height='auto';o.appendChild(c);o.addEventListener('click',()=>o.remove());document.body.appendChild(o);}document.querySelectorAll('.mermaid svg').forEach(function(svg){svg.style.maxWidth='none';svg.style.cursor='zoom-in';svg.addEventListener('click',function(){zoom(svg);});const h=document.createElement('div');h.textContent='clique pra ampliar';h.style.cssText='text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px';svg.parentElement.appendChild(h);});</script></body></html>
